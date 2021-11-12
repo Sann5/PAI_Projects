@@ -1,0 +1,24 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run Santi",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/task2_handout_d5ba51ff/solution_santi.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/task2_handout_d5ba51ff/"
+        },
+        {
+            "name": "Run Solution",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/task2_handout_d5ba51ff/solution.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/task2_handout_d5ba51ff/"
+        }
+    ]
+}
