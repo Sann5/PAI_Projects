@@ -216,7 +216,15 @@ class Agent:
         """
         Use the data from the buffer to update the policy. Returns nothing.
         """
-        #TODO2: Implement this function. 
+        #TODO2: Implement this function.
+        # Define the loss function
+        # Compute the gradient by back propagation
+        _, log_prob = self.ac.pi.forward(data['obs'], data['act'])
+        discounted_rew = discount_cumsum(data['rew'], data.gamma)
+        pi_loss = -(discounted_rew * log_prob).sum()
+        pi_loss.backward()
+        pi_optimizer.step()
+        
         #TODO8: Change the update rule to make use of the baseline instead of rewards-to-go.
 
         obs = data['obs']

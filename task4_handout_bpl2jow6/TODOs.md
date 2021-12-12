@@ -6,6 +6,7 @@
 ## TODO's
 ### Stage 1
 - [x] TODO1: Implement the ‘step‘ function in the ‘MLPActorCritic‘ class.
+	- [ ] Where should the no_grad be included? 
 - [ ] Update the policy neural networks at the end of each epoch
 - [ ] Implement ‘get action‘
 - [ ] Run
