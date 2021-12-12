@@ -106,17 +106,18 @@ class MLPActorCritic(nn.Module):
         # Hint: This function is only called when interacting with the environment. You should use
         # `torch.no_grad` to ensure that it does not interfere with the gradient computation.
         
-        # 1. Action sampled from the policy given a state
-        distribution = self.pi._distribution(state)
-        action = distribution.sample()
-        
-        # 2. The value function at the given state
-        value = self.v.forward(state)
-        
-        # 3. Log-probability of the action under the policy output distribution
-        log_prob = self.pi._log_prob_from_distribution(distribution, action)
-        
-        return action, value, log_prob
+        with torch.no_grad():
+            # 1. Action sampled from the policy given a state
+            distribution = self.pi._distribution(state)
+            action = distribution.sample()
+            
+            # 2. The value function at the given state
+            value = self.v.forward(state)
+            
+            # 3. Log-probability of the action under the policy output distribution
+            log_prob = self.pi._log_prob_from_distribution(distribution, action)
+            
+            return action, value, log_prob
 
 
 class VPGBuffer:
@@ -217,11 +218,16 @@ class Agent:
         Use the data from the buffer to update the policy. Returns nothing.
         """
         #TODO2: Implement this function.
-        # Define the loss function
-        # Compute the gradient by back propagation
+        # Get log probabilities given the trajectories
         _, log_prob = self.ac.pi.forward(data['obs'], data['act'])
+        
+        # Get the discounted rewards
         discounted_rew = discount_cumsum(data['rew'], data.gamma)
+        
+        # Compute loss function
         pi_loss = -(discounted_rew * log_prob).sum()
+        
+        # Backpropagate and update parameters
         pi_loss.backward()
         pi_optimizer.step()
         
@@ -351,7 +357,10 @@ class Agent:
         """
         # TODO3: Implement this function.
         # Currently, this just returns a random action.
-        return np.random.choice([0, 1, 2, 3])
+        # Get state specific action distribution and return sample
+        distribution = self.ac.pi._distribution(obs)
+        
+        return distribution.sample()
 
 
 def main():
