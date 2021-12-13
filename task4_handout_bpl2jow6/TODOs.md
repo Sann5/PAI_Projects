@@ -16,7 +16,7 @@
 - [x] Run
 
 ### Stage 3, GAE
-- [ ] Update the value function at the end of each epoch.
-- [ ] Implement the estimation of the advantage at each timestep (called phi in the code).
-- [ ] Normalize the advantage values.
-- [ ] Change the update rule for the policy to make use of the advantage function as a baseline.
+- [x] Update the value function at the end of each epoch.
+- [x] Implement the estimation of the advantage at each timestep (called phi in the code).
+- [x] Normalize the advantage values.
+- [x] Change the update rule for the policy to make use of the advantage function as a baseline.

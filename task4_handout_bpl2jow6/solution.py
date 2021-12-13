@@ -165,19 +165,16 @@ class VPGBuffer:
         vals = np.append(self.val_buf[path_slice], last_val)
 
         # TODO6: Implement computation of phi.
-        
         # Hint: For estimating the advantage function to use as phi, equation 
         # 16 in the GAE paper (see task description) will be helpful, and so will
-        # the discout_cumsum function at the top of this file. 
-        
-        # deltas = rews[:-1] + ...
-        # self.phi_buf[path_slice] =
+        # the discout_cumsum function at the top of this file.
+        deltas = rews[:-1] + self.gamma * vals[1:] - vals[:-1]
+        self.phi_buf[path_slice] = discout_cumsum(deltas, slef.lam * self.gamma)
 
         #TODO4: currently the return is the total discounted reward for the whole episode. 
         # Replace this by computing the reward-to-go for each timepoint.
         # Hint: use the discount_cumsum function.
         self.ret_buf[path_slice] = discount_cumsum(rews, self.gamma)[:-1]
-
         self.path_start_idx = self.ptr
 
 
@@ -190,7 +187,9 @@ class VPGBuffer:
         self.ptr, self.path_start_idx = 0, 0
 
         # TODO7: Here it may help to normalize the values in self.phi_buf
-        self.phi_buf = self.phi_buf
+        mean = np.mean(self.phi_buf)
+        sigma = np.std(self.phi_buf)
+        self.phi_buf = (self.phi_buf - mean)/sigma
 
         data = dict(obs=self.obs_buf, act=self.act_buf, ret=self.ret_buf,
                     phi=self.phi_buf, logp=self.logp_buf)
@@ -213,34 +212,31 @@ class Agent:
         self.pi_optimizer = Adam(self.ac.pi.parameters(), lr=pi_lr)
         self.v_optimizer = Adam(self.ac.v.parameters(), lr=vf_lr)
 
-    def pi_update(self, data):
+        def pi_update(self, data):
         """
         Use the data from the buffer to update the policy. Returns nothing.
         """
         #TODO2: Implement this function.
-        # Get log probabilities given the trajectories
-        _, log_prob = self.ac.pi.forward(data['obs'], data['act'])
+        # Before doing any computation, always call.zero_grad on the relevant optimizer
+        self.pi_optimizer.zero_grad()
+        
+        #TODO8: Change the update rule to make use of the baseline instead of rewards-to-go.
+        #Hint: you need to compute a 'loss' such that its derivative with respect to the policy
+        #parameters is the policy gradient. Then call loss.backwards() and pi_optimizer.step()
+        obs = data['obs']
+        act = data['act']
+        phi = data['phi']
+        ret = data['ret']
+        logp = data['logp']
         
         # Compute loss function. Log probabilities times the returns (discounted rewards computed in )
-        pi_loss = -(data['ret'] * log_prob).sum()
+        pi_loss = -(phi * logp).sum()
+        #pi_loss = -(ret * logp).sum()
         
         # Backpropagate and update parameters
         pi_loss.backward()
         self.pi_optimizer.step()
         
-        #TODO8: Change the update rule to make use of the baseline instead of rewards-to-go.
-
-        obs = data['obs']
-        act = data['act']
-        phi = data['phi']
-        ret = data['ret']
-
-        # Before doing any computation, always call.zero_grad on the relevant optimizer
-        self.pi_optimizer.zero_grad()
-
-        #Hint: you need to compute a 'loss' such that its derivative with respect to the policy
-        #parameters is the policy gradient. Then call loss.backwards() and pi_optimizer.step()
-
         return
 
     def v_update(self, data):
@@ -248,19 +244,29 @@ class Agent:
         Use the data from the buffer to update the value function. Returns nothing.
         """
         #TODO5: Implement this function
-
+        # Hint: it often works well to do multiple rounds of value function updates per epoch.
+        # With the learning rate given, we'd recommend 100.
+        # In each update, compute a loss for the value function, call loss.backwards() and
+        # then v_optimizer.step()
         obs = data['obs']
         act = data['act']
         phi = data['phi']
         ret = data['ret']
-
-        # Hint: it often works well to do multiple rounds of value function updates per epoch.
-        # With the learning rate given, we'd recommend 100. 
-        # In each update, compute a loss for the value function, call loss.backwards() and 
-        # then v_optimizer.step()
-        # Before doing any computation, always call.zero_grad on the relevant optimizer
-        self.v_optimizer.zero_grad()
-
+        val = data['val']
+        
+        for _ in range(100):
+            # Before doing any computation, always call.zero_grad on the relevant optimizer
+            self.v_optimizer.zero_grad()
+            
+            # Compute the loss function
+            loss = ((val-ret)**2).sum()
+            
+            # Calculate gradient
+            loss.backwards()
+            
+            # Update
+            self.v_optimizer.step()
+        
         return
 
     def train(self):
