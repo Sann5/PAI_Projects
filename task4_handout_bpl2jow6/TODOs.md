@@ -1,7 +1,7 @@
 - [x] Read the section below on rewards-to-go and the use of a baseline.
 - [x] Read the original paper introducing Generalized Advantage Estimation.
-- [ ] Read the skeleton code care- fully.
-- [ ] Implement the TODOS, testing after each one.
+- [x] Read the skeleton code care- fully.
+- [x] Implement the TODOS, testing after each one.
 
 ## TODO's
 ### Stage 1
@@ -11,6 +11,12 @@
 - [x] **TODO3**: Implement ‘get action‘
 - [x] Run
 
-### Stage 2
-- [ ] **TODO4**: Implement the computation of rewards-to-go in the `ret buf`.
-- [ ] Run
+### Stage 2, rewards-to-go
+- [x] **TODO4**: Implement the computation of rewards-to-go in the `ret buf`.
+- [x] Run
+
+### Stage 3, GAE
+- [ ] Update the value function at the end of each epoch.
+- [ ] Implement the estimation of the advantage at each timestep (called phi in the code).
+- [ ] Normalize the advantage values.
+- [ ] Change the update rule for the policy to make use of the advantage function as a baseline.
