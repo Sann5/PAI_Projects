@@ -169,7 +169,7 @@ class VPGBuffer:
         # 16 in the GAE paper (see task description) will be helpful, and so will
         # the discout_cumsum function at the top of this file.
         deltas = rews[:-1] + self.gamma * vals[1:] - vals[:-1]
-        self.phi_buf[path_slice] = discout_cumsum(deltas, slef.lam * self.gamma)
+        self.phi_buf[path_slice] = discount_cumsum(deltas, self.lam * self.gamma)
 
         #TODO4: currently the return is the total discounted reward for the whole episode. 
         # Replace this by computing the reward-to-go for each timepoint.
@@ -212,7 +212,7 @@ class Agent:
         self.pi_optimizer = Adam(self.ac.pi.parameters(), lr=pi_lr)
         self.v_optimizer = Adam(self.ac.v.parameters(), lr=vf_lr)
 
-        def pi_update(self, data):
+    def pi_update(self, data):
         """
         Use the data from the buffer to update the policy. Returns nothing.
         """
@@ -227,14 +227,14 @@ class Agent:
         act = data['act']
         phi = data['phi']
         ret = data['ret']
-        logp = data['logp']
         
-        # Compute loss function. Log probabilities times the returns (discounted rewards computed in )
-        pi_loss = -(phi * logp).sum()
-        #pi_loss = -(ret * logp).sum()
+        # Compute loss function.
+        _, logp = self.ac.pi.forward(obs, act)
+        loss = -(phi * logp).sum()
+        #loss = -(ret * logp).sum()
         
         # Backpropagate and update parameters
-        pi_loss.backward()
+        loss.backward()
         self.pi_optimizer.step()
         
         return
@@ -252,17 +252,19 @@ class Agent:
         act = data['act']
         phi = data['phi']
         ret = data['ret']
-        val = data['val']
         
         for _ in range(100):
             # Before doing any computation, always call.zero_grad on the relevant optimizer
             self.v_optimizer.zero_grad()
             
+            # Get value estimates under curretn parameters
+            val = self.ac.v.forward(obs)
+            
             # Compute the loss function
             loss = ((val-ret)**2).sum()
             
             # Calculate gradient
-            loss.backwards()
+            loss.backward()
             
             # Update
             self.v_optimizer.step()
