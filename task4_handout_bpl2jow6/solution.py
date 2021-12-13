@@ -355,7 +355,7 @@ class Agent:
         # TODO3: Implement this function.
         # Currently, this just returns a random action.
         # Get state specific action distribution and return sample
-        distribution = self.ac.pi._distribution(obs)
+        distribution = self.ac.pi._distribution(torch.Tensor(obs))
         
         return distribution.sample()
 
