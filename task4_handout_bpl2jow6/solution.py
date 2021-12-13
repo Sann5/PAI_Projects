@@ -221,15 +221,12 @@ class Agent:
         # Get log probabilities given the trajectories
         _, log_prob = self.ac.pi.forward(data['obs'], data['act'])
         
-        # Get the discounted rewards
-        discounted_rew = discount_cumsum(data['rew'], data.gamma)
-        
-        # Compute loss function
-        pi_loss = -(discounted_rew * log_prob).sum()
+        # Compute loss function. Log probabilities times the returns (discounted rewards computed in )
+        pi_loss = -(data['ret'] * log_prob).sum()
         
         # Backpropagate and update parameters
         pi_loss.backward()
-        pi_optimizer.step()
+        self.pi_optimizer.step()
         
         #TODO8: Change the update rule to make use of the baseline instead of rewards-to-go.
 
